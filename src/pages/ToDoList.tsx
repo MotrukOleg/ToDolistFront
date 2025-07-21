@@ -39,6 +39,7 @@ const ToDoList: React.FC = () => {
     const [editText, setEditText] = useState('')
     const todos = useSelector((state: RootState) => state.todos.todos);
     const selectedTodo = useSelector((state: RootState) => state.todos.selectedTodo);
+    const [newTodoStatus, setNewTodoStatus] = useState<Todo['status']>('todo');
     const dispatch = useDispatch<AppDispatch>();
     const [newDeadline, setNewDeadline] = useState<Date | null>(null);
 
@@ -67,13 +68,14 @@ const ToDoList: React.FC = () => {
         setEditText(todo.recordText);
     };
 
+
     const handleAddTodo = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTodo.trim()) return;
         try {
             const token = localStorage.getItem('token');
             const formattedDeadline = newDeadline ? dayjs(newDeadline).format('YYYY-MM-DD') : null;
-            const addedTodo = await addTodoApi(token, newTodo, formattedDeadline);
+            const addedTodo = await addTodoApi(token, newTodo, formattedDeadline, newTodoStatus);
             dispatch(addTodo(addedTodo));
             setNewTodo('');
             setOpen(false);
@@ -88,7 +90,7 @@ const ToDoList: React.FC = () => {
             const token = localStorage.getItem('token');
             const formattedDeadline = newDeadline ? dayjs(newDeadline).format('YYYY-MM-DD') : null;
             await updateTodoStatus(token, selectedTodo.recordId.toString(), selectedTodo.status, editText, formattedDeadline);
-            dispatch(updateTodo({...selectedTodo, recordText: editText}));
+            dispatch(updateTodo({...selectedTodo, recordText: editText , deadline: formattedDeadline}));
             dispatch(setSelectedTodo(null));
         } catch {
             setError('Failed to update todo');
@@ -194,7 +196,7 @@ const ToDoList: React.FC = () => {
                                         <Box sx={{display: "flex", justifyContent: "center", mb: 4}}>
                                             <Button
                                                 variant="contained"
-                                                onClick={() => setOpen(true)}
+                                                onClick={() =>{setNewTodoStatus(col.id as Todo['status']); setOpen(true) }}
                                                 sx={{
                                                     backgroundColor: '#0079bf',
                                                     color: '#fff',

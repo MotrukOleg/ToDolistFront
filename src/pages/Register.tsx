@@ -5,23 +5,26 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../store';
-import {registerUser} from '../features/authSlice';
+import {registerUser , resetRegistrationSuccess} from '../features/authSlice';
 import {useNavigate} from 'react-router-dom';
 
-const Register: React.FC = () => {
+interface RegisterProps {
+    onRegistrationSuccess?: () => void;
+}
+
+const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
-    const {loading, error, token} = useSelector((state: RootState) => state.auth);
+    const { loading, error, registrationSuccess } = useSelector((state: RootState) => state.auth);
 
     const [values, setValues] = useState({FirstName: '',LastName: '', email: '', password: ''});
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
-        if (token) {
-            localStorage.setItem('token', token);
-            navigate('/ToDolist');
+        if (registrationSuccess) {
+            if (onRegistrationSuccess) onRegistrationSuccess();
         }
-    }, [token, navigate]);
+    }, [registrationSuccess, onRegistrationSuccess, navigate]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setValues({...values, [e.target.name]: e.target.value});

@@ -13,10 +13,10 @@ export const fetchTodos = async (token: string | null) => {
     return response.data;
 };
 
-export const addTodo = async (token: string | null, RecordText: string, deadline: string | null) => {
+export const addTodo = async (token: string | null, RecordText: string, deadline: string | null , Status: string | null) => {
     const response = await axios.post(
         API_ADD_URL,
-        { RecordText, status: 'todo' ,deadline },
+        { RecordText, status: Status ,deadline },
         { headers: { Authorization: `Bearer ${token}` } }
     );
     console.log(API_ADD_URL);
