@@ -3,17 +3,20 @@ import {useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../store';
 import {loginUser} from '../features/authSlice';
 import {useNavigate} from 'react-router-dom';
-import TextField from '@mui/material/TextField';
+import {InputAdornment , TextField , IconButton} from '@mui/material';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const Login: React.FC = () => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const {loading, error, token} = useSelector((state: RootState) => state.auth);
-
+    const [showPassword, setShowPassword] = React.useState(false);
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const [values, setValues] = useState({email: '', password: ''});
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -95,7 +98,7 @@ const Login: React.FC = () => {
                 <TextField
                     label="Password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     fullWidth
                     required
                     value={values.password}
@@ -103,6 +106,21 @@ const Login: React.FC = () => {
                     onBlur={handleBlur}
                     error={!!errors.password}
                     helperText={errors.password}
+                    slotProps={{
+                        input:{
+                            endAdornment:(
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={handleClickShowPassword}
+                                        edge="end"
+                                        >
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
+                    }}
                 />
                 <Button
                     type="submit"

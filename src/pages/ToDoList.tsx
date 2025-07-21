@@ -6,8 +6,7 @@
 } from '../services/todoService';
 import React, {useEffect, useState} from 'react';
 import {
-    Container, Paper, Typography, Button, Alert, Box, Dialog, DialogTitle,
-    DialogContent, DialogActions, TextField
+    Container, Paper, Typography, Button, Alert, Box
 } from '@mui/material';
 import {DragDropContext, Droppable, DropResult} from '@hello-pangea/dnd';
 import DraggableTodo from '../components/DraggableTodo';
@@ -16,8 +15,11 @@ import {useSelector, useDispatch} from 'react-redux';
 import {RootState, AppDispatch} from '../store';
 import {setTodos, addTodo, updateTodo, deleteTodo, setSelectedTodo} from '../features/todosSlice';
 import LogOut from '../components/LogoutButton';
-import DeadlinePicker from '../components/DeadlinePicker';
 import dayjs from "dayjs";
+import EditTodoDialog from '../components/EditTodoDialog';
+import AddTodoDialog from '../components/AddTodoDialog';
+
+
 
 interface Todo {
     recordId: BigInt;
@@ -33,15 +35,17 @@ const columns = [
 ];
 
 const ToDoList: React.FC = () => {
-    const [newTodo, setNewTodo] = useState('');
+    const [values, setValues] = useState<{ todo: string }>({ todo: '' });
     const [error, setError] = useState('');
-    const [open, setOpen] = useState(false);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
     const [editText, setEditText] = useState('')
     const todos = useSelector((state: RootState) => state.todos.todos);
     const selectedTodo = useSelector((state: RootState) => state.todos.selectedTodo);
     const [newTodoStatus, setNewTodoStatus] = useState<Todo['status']>('todo');
     const dispatch = useDispatch<AppDispatch>();
     const [newDeadline, setNewDeadline] = useState<Date | null>(null);
+    const isTodoTextValid = (text: string) => text.trim().length > 0 && text.length <= 100;
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         const fetchAllTodos = async () => {
@@ -68,29 +72,39 @@ const ToDoList: React.FC = () => {
         setEditText(todo.recordText);
     };
 
+    const validateField = (name: string | null, value: string | null) => {
+        if (name === 'todo') {
+            if (!value || !value.trim()) return 'Todo is required';
+            if (value.length > 100) return 'Todo must be less than 100 characters';
+        }
+        return '';
+    };
 
-    const handleAddTodo = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newTodo.trim()) return;
+
+    const handleAddTodo = async (todoText: string, deadline: Date | null) => {
         try {
             const token = localStorage.getItem('token');
-            const formattedDeadline = newDeadline ? dayjs(newDeadline).format('YYYY-MM-DD') : null;
-            const addedTodo = await addTodoApi(token, newTodo, formattedDeadline, newTodoStatus);
+            const formattedDeadline = deadline ? dayjs(deadline).format('YYYY-MM-DD') : null;
+            const addedTodo = await addTodoApi(token, todoText, formattedDeadline, newTodoStatus);
             dispatch(addTodo(addedTodo));
-            setNewTodo('');
-            setOpen(false);
         } catch {
             setError('Failed to add todo');
         }
     };
 
-    const handleEditSave = async () => {
+
+    const handleEditSave = async (text: string, deadline: Date | null) => {
+        const error = validateField('todo', text);
+        if (error) {
+            setErrors({ todo: error });
+            return;
+        }
         if (!selectedTodo) return;
         try {
             const token = localStorage.getItem('token');
-            const formattedDeadline = newDeadline ? dayjs(newDeadline).format('YYYY-MM-DD') : null;
-            await updateTodoStatus(token, selectedTodo.recordId.toString(), selectedTodo.status, editText, formattedDeadline);
-            dispatch(updateTodo({...selectedTodo, recordText: editText , deadline: formattedDeadline}));
+            const formattedDeadline = deadline ? dayjs(deadline).format('YYYY-MM-DD') : null;
+            await updateTodoStatus(token, selectedTodo.recordId.toString(), selectedTodo.status, text, formattedDeadline);
+            dispatch(updateTodo({ ...selectedTodo, recordText: text, deadline: formattedDeadline }));
             dispatch(setSelectedTodo(null));
         } catch {
             setError('Failed to update todo');
@@ -144,29 +158,11 @@ const ToDoList: React.FC = () => {
                         </Alert>
                     )}
                 </Paper>
-                <Dialog open={open} onClose={() => setOpen(false)}>
-                    <DialogTitle>Add new todo</DialogTitle>
-                    <Box component="form" onSubmit={handleAddTodo}>
-                        <DialogContent>
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                label="Todo"
-                                fullWidth
-                                value={newTodo}
-                                onChange={e => setNewTodo(e.target.value)}
-                            />
-                            <DeadlinePicker
-                                value={newDeadline ? dayjs(newDeadline) : null}
-                                onChange={date => setNewDeadline(date ? date.toDate() : null)}
-                            />
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={() => setOpen(false)}>Cancel</Button>
-                            <Button type="submit" variant="contained">Add</Button>
-                        </DialogActions>
-                    </Box>
-                </Dialog>
+                <AddTodoDialog
+                    open={addDialogOpen}
+                    onClose={() => setAddDialogOpen(false)}
+                    onAdd={handleAddTodo}
+                />
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Box sx={{display: 'flex', gap: 3, alignItems: 'flex-start', overflowX: 'auto', pb: 2}}>
                         {columns.map(col => (
@@ -196,7 +192,7 @@ const ToDoList: React.FC = () => {
                                         <Box sx={{display: "flex", justifyContent: "center", mb: 4}}>
                                             <Button
                                                 variant="contained"
-                                                onClick={() =>{setNewTodoStatus(col.id as Todo['status']); setOpen(true) }}
+                                                onClick={() => { setNewTodoStatus(col.id as Todo['status']); setAddDialogOpen(true); }}
                                                 sx={{
                                                     backgroundColor: '#0079bf',
                                                     color: '#fff',
@@ -225,28 +221,13 @@ const ToDoList: React.FC = () => {
                         ))}
                     </Box>
                 </DragDropContext>
-                <Dialog open={!!selectedTodo} onClose={() => dispatch(setSelectedTodo(null))}>
-                    <DialogTitle>Edit Todo</DialogTitle>
-                    <DialogContent>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            label="Todo"
-                            fullWidth
-                            value={editText}
-                            onChange={e => setEditText(e.target.value)}
-                        />
-                        <DeadlinePicker
-                            value={newDeadline ? dayjs(newDeadline) : null}
-                            onChange={date => setNewDeadline(date ? date.toDate() : null)}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => dispatch(setSelectedTodo(null))}>Cancel</Button>
-                        <Button color="error" onClick={handleDelete}>Delete</Button>
-                        <Button variant="contained" onClick={handleEditSave}>Save</Button>
-                    </DialogActions>
-                </Dialog>
+                <EditTodoDialog
+                    open={!!selectedTodo}
+                    selectedTodo={selectedTodo}
+                    onClose={() => dispatch(setSelectedTodo(null))}
+                    onUpdate={updatedTodo => dispatch(updateTodo(updatedTodo))}
+                    onDelete={id => dispatch(deleteTodo(id))}
+                />
             </Container>
         </Bg>
 

@@ -1,5 +1,5 @@
 ﻿import React, {useState, useEffect} from 'react';
-import TextField from '@mui/material/TextField';
+import {InputAdornment , TextField , IconButton} from '@mui/material';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
@@ -7,6 +7,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../store';
 import {registerUser , resetRegistrationSuccess} from '../features/authSlice';
 import {useNavigate} from 'react-router-dom';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 interface RegisterProps {
     onRegistrationSuccess?: () => void;
@@ -17,7 +19,10 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
     const navigate = useNavigate();
     const { loading, error, registrationSuccess } = useSelector((state: RootState) => state.auth);
 
-    const [values, setValues] = useState({FirstName: '',LastName: '', email: '', password: ''});
+    const [showPassword, setShowPassword] = React.useState(false);
+    const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+    const [values, setValues] = useState({FirstName: '',LastName: '', email: '', password: '' , repeatPassword: '' });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
@@ -31,8 +36,8 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
         setErrors({...errors, [e.target.name]: ''});
     };
 
-    const validateField = (FirstName: string, value: string) => {
-        switch (FirstName) {
+    const validateField = (Validation: string, value: string) => {
+        switch (Validation) {
             case 'FirstName':
                 if (!value.trim()) return 'Name is required';
                 break;
@@ -43,6 +48,10 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
             case 'password':
                 if (!value) return 'Password is required';
                 if (value.length < 6) return 'Password must be at least 6 characters';
+                break;
+            case 'repeatPassword':
+                if(!value) return 'Password is required';
+                if(value !== values.password) return 'Password is not match';
                 break;
             default:
                 return '';
@@ -109,7 +118,7 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
                 <TextField
                     label="Password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     fullWidth
                     required
                     value={values.password}
@@ -117,6 +126,33 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
                     onBlur={handleBlur}
                     error={!!errors.password}
                     helperText={errors.password}
+                    slotProps={{
+                        input : {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={handleClickShowPassword}
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff /> : <Visibility /> }
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }
+                    }}
+                />
+                <TextField
+                    label="Repeat Password"
+                    name="repeatPassword"
+                    type = "password"
+                    fullWidth
+                    required
+                    value={values.repeatPassword}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={!!errors.repeatPassword}
+                    helperText={errors.repeatPassword}
                 />
                 <Button
                     type="submit"
