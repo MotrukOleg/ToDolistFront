@@ -40,10 +40,19 @@ const DraggableTodo: React.FC<DraggableTodoProps> = React.memo(({todo, idx, onCl
                         opacity: snapshot.isDragging ? 0.7 : 1,
                         backgroundColor: color || style.backgroundColor || 'white',
                         borderLeft: style.borderLeft || 'none',
+                        transition: 'box-shadow 0.2s, transform 0.2s',
+                        boxShadow: snapshot.isDragging ? 6 : 1,
+                        minHeight: 64,
                     }}
                 >
                     <CardContent>
-                        <Typography>{todo.recordText}</Typography>
+                        <Typography sx={{
+                            wordBreak: 'break-word',
+                            whiteSpace: 'pre-line',
+                        }}
+                        >
+                            {todo.recordText}
+                        </Typography>
                         {todo.deadline && (
                             <Typography variant="caption" color="text.secondary">
                                 Deadline: {dayjs(todo.deadline).format('YYYY-MM-DD')}

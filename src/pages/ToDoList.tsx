@@ -145,7 +145,7 @@ const ToDoList: React.FC = () => {
     return (
         <Bg>
             <Container maxWidth="xl" sx={{mt: 6}}>
-                <Paper elevation={4} sx={{p: 4, borderRadius: 3, mb: 4}}>
+                <Paper elevation={4} sx={{p: 2, borderRadius: 3, mb: 4}}>
                     <Typography variant="h4" align="center" gutterBottom>
                         Board
                     </Typography>
