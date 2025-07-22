@@ -20,7 +20,7 @@ test('renders login form', () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
 });
-test('renders login form', () => {
+test('renders register form', () => {
     render(
         <Provider store={store}>
             <MemoryRouter>

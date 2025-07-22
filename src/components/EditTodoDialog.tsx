@@ -6,10 +6,12 @@ import { updateTodoStatus, deleteTodo as deleteTodoApi } from '../services/todoS
 
 interface Todo {
     recordId: BigInt;
-    recordText: string;
+    title: string;
+    description: string;
     status: 'todo' | 'inprogress' | 'done';
     deadline?: Date | string | null;
 }
+
 
 interface EditTodoDialogProps {
     open: boolean;
@@ -26,7 +28,8 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                                                            onUpdate,
                                                            onDelete,
                                                        }) => {
-    const [editText, setEditText] = useState(selectedTodo?.recordText || '');
+    const [editText, setEditText] = useState(selectedTodo?.title || '');
+    const [editDescriptionText, setEditDescriptionText] = useState(selectedTodo?.description || '');
     const [newDeadline, setNewDeadline] = useState<Date | null>(
         selectedTodo?.deadline ? new Date(selectedTodo.deadline as string) : null
     );
@@ -34,22 +37,25 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
     const [error, setError] = useState('');
 
     useEffect(() => {
-        setEditText(selectedTodo?.recordText || '');
+        setEditText(selectedTodo?.title || '');
+        setEditDescriptionText(selectedTodo?.description || '');
         setNewDeadline(selectedTodo?.deadline ? new Date(selectedTodo.deadline as string) : null);
         setErrors({});
         setError('');
     }, [open, selectedTodo]);
 
-    const validateField = (value: string) => {
-        if (!value.trim()) return 'Todo is required';
-        if (value.length > 100) return 'Todo must be less than 100 characters';
-        return '';
+    const validateFields = (title: string, description: string) => {
+        const errors: { [key: string]: string } = {};
+        if (!title.trim()) errors.title = 'Title is required';
+        else if (title.length > 50) errors.title = 'Title must be less than 50 characters';
+        if (description.length > 500) errors.description = 'Description must be less than 500 characters';
+        return errors;
     };
 
     const handleSave = async () => {
-        const errorMsg = validateField(editText);
-        if (errorMsg || !selectedTodo) {
-            setErrors({ todo: errorMsg || 'No todo selected' });
+        const validationErrors = validateFields(editText, editDescriptionText);
+        if (Object.keys(validationErrors).length > 0 || !selectedTodo) {
+            setErrors(validationErrors);
             return;
         }
         try {
@@ -60,14 +66,16 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                 selectedTodo.recordId.toString(),
                 selectedTodo.status,
                 editText,
-                formattedDeadline
+                formattedDeadline,
+                editDescriptionText
             );
-            onUpdate({ ...selectedTodo, recordText: editText, deadline: formattedDeadline });
+            onUpdate({ ...selectedTodo, title: editText, description: editDescriptionText, deadline: formattedDeadline });
             onClose();
         } catch {
             setError('Failed to update todo');
         }
     };
+
 
     const handleDelete = async () => {
         if (!selectedTodo) return;
@@ -88,14 +96,27 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                 <TextField
                     autoFocus
                     margin="dense"
-                    label="Todo"
+                    label="Title"
                     fullWidth
                     value={editText}
-                    onChange={e => { setEditText(e.target.value); setErrors({ todo: '' }); }}
-                    onBlur={() => setErrors({ todo: validateField(editText) })}
-                    error={!!errors.todo}
-                    helperText={errors.todo}
+                    onChange={e => { setEditText(e.target.value); setErrors({ ...errors, title: '' }); }}
+                    onBlur={() => setErrors(validateFields(editText, editDescriptionText))}
+                    error={!!errors.title}
+                    helperText={errors.title}
                 />
+                <TextField
+                    margin="dense"
+                    label="Description"
+                    fullWidth
+                    multiline
+                    rows={8}
+                    value={editDescriptionText}
+                    onChange={e => { setEditDescriptionText(e.target.value); setErrors({ ...errors, description: '' }); }}
+                    onBlur={() => setErrors(validateFields(editText, editDescriptionText))}
+                    error={!!errors.description}
+                    helperText={errors.description}
+                />
+
                 <DeadlinePicker
                     value={newDeadline ? dayjs(newDeadline) : null}
                     onChange={date => setNewDeadline(date ? date.toDate() : null)}

@@ -23,10 +23,12 @@ import AddTodoDialog from '../components/AddTodoDialog';
 
 interface Todo {
     recordId: BigInt;
-    recordText: string;
+    title: string;
+    description: string;
     status: 'todo' | 'inprogress' | 'done';
     deadline?: Date | string | null;
 }
+
 
 const columns = [
     {id: 'todo', title: 'To Do'},
@@ -38,7 +40,8 @@ const ToDoList: React.FC = () => {
     const [values, setValues] = useState<{ todo: string }>({ todo: '' });
     const [error, setError] = useState('');
     const [addDialogOpen, setAddDialogOpen] = useState(false);
-    const [editText, setEditText] = useState('')
+    const [editText, setEditText] = useState('');
+    const [descritionText , setDescriptionText] = useState('');
     const todos = useSelector((state: RootState) => state.todos.todos);
     const selectedTodo = useSelector((state: RootState) => state.todos.selectedTodo);
     const [newTodoStatus, setNewTodoStatus] = useState<Todo['status']>('todo');
@@ -69,7 +72,8 @@ const ToDoList: React.FC = () => {
     }, [selectedTodo]);
     const handleTodoClick = (todo: Todo) => {
         dispatch(setSelectedTodo(todo));
-        setEditText(todo.recordText);
+        setEditText(todo.title);
+        setDescriptionText(todo.description);
     };
 
     const validateField = (name: string | null, value: string | null) => {
@@ -81,20 +85,21 @@ const ToDoList: React.FC = () => {
     };
 
 
-    const handleAddTodo = async (todoText: string, deadline: Date | null) => {
-        try {
-            const token = localStorage.getItem('token');
-            const formattedDeadline = deadline ? dayjs(deadline).format('YYYY-MM-DD') : null;
-            const addedTodo = await addTodoApi(token, todoText, formattedDeadline, newTodoStatus);
-            dispatch(addTodo(addedTodo));
-        } catch {
-            setError('Failed to add todo');
-        }
-    };
+const handleAddTodo = async (title: string, description: string, deadline: Date | null) => {
+    try {
+        const token = localStorage.getItem('token');
+        const formattedDeadline = deadline ? dayjs(deadline).format('YYYY-MM-DD') : null;
+        const addedTodo = await addTodoApi(token, title, description, formattedDeadline, newTodoStatus);
+        dispatch(addTodo(addedTodo));
+    } catch {
+        setError('Failed to add todo');
+    }
+};
 
 
-    const handleEditSave = async (text: string, deadline: Date | null) => {
-        const error = validateField('todo', text);
+
+    const handleEditSave = async (title: string, description: string ,deadline: Date | null) => {
+        const error = validateField('todo', title);
         if (error) {
             setErrors({ todo: error });
             return;
@@ -103,8 +108,8 @@ const ToDoList: React.FC = () => {
         try {
             const token = localStorage.getItem('token');
             const formattedDeadline = deadline ? dayjs(deadline).format('YYYY-MM-DD') : null;
-            await updateTodoStatus(token, selectedTodo.recordId.toString(), selectedTodo.status, text, formattedDeadline);
-            dispatch(updateTodo({ ...selectedTodo, recordText: text, deadline: formattedDeadline }));
+            await updateTodoStatus(token, selectedTodo.recordId.toString(), selectedTodo.status, title, formattedDeadline, description);
+            dispatch(updateTodo({ ...selectedTodo, title: title, deadline: formattedDeadline }));
             dispatch(setSelectedTodo(null));
         } catch {
             setError('Failed to update todo');
@@ -134,7 +139,7 @@ const ToDoList: React.FC = () => {
             const token = localStorage.getItem('token');
             const formattedDeadline = todo.deadline ? dayjs(todo.deadline).format('YYYY-MM-DD') : null;
             console.log(formattedDeadline);
-            await updateTodoStatus(token, todo.recordId.toString(), destination.droppableId, todo.recordText, formattedDeadline);
+            await updateTodoStatus(token, todo.recordId.toString(), destination.droppableId, todo.title, formattedDeadline, todo.description);
             dispatch(updateTodo({...todo, status: destination.droppableId as Todo['status']}));
         } catch {
             setError('Failed to update todo');
@@ -209,7 +214,7 @@ const ToDoList: React.FC = () => {
                                             </Button>
                                         </Box>
                                         {todos
-                                            .filter(todo => todo && todo.status && todo.recordId && todo.recordText && todo.status === col.id)
+                                            .filter(todo => todo && todo.status && todo.recordId && todo.title && todo.status === col.id)
                                             .map((todo, idx) => (
                                                 <DraggableTodo todo={todo} idx={idx} key={todo.recordId.toString()}
                                                                onClick={() => handleTodoClick(todo)}/>

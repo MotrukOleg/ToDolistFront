@@ -13,20 +13,26 @@ export const fetchTodos = async (token: string | null) => {
     return response.data;
 };
 
-export const addTodo = async (token: string | null, RecordText: string, deadline: string | null , Status: string | null) => {
+export const addTodo = async (
+    token: string | null,
+    title: string,
+    description: string,
+    deadline: string | null,
+    status: string | null
+) => {
     const response = await axios.post(
         API_ADD_URL,
-        { RecordText, status: Status ,deadline },
+        { Title: title, Description: description, Status: status, Deadline: deadline },
         { headers: { Authorization: `Bearer ${token}` } }
     );
-    console.log(API_ADD_URL);
     return response.data;
 };
 
-export const updateTodoStatus = async (token: string | null, id: string, status: string, recordText: string , deadline: string | null) => {
+
+export const updateTodoStatus = async (token: string | null, id: string, status: string, title: string , deadline: string | null , description: string) => {
     await axios.put(
         `${API_UPDATE_URL}${id}`,
-        {RecordText: recordText , Status: status, Deadline: deadline },
+        { Title: title, Description: description, Status: status, Deadline: deadline },
         { headers: { Authorization: `Bearer ${token}` } }
     );
 };

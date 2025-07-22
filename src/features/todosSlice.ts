@@ -2,7 +2,8 @@
 
 interface Todo {
     recordId: BigInt;
-    recordText: string;
+    title: string;
+    description: string;
     status: 'todo' | 'inprogress' | 'done';
     deadline?: Date | string | null;
 }

@@ -6,16 +6,17 @@ import DeadlinePicker from './DeadlinePicker';
 interface AddTodoDialogProps {
     open: boolean;
     onClose: () => void;
-    onAdd: (todoText: string, deadline: Date | null) => Promise<void>;
+    onAdd: (title: string, description: string, deadline: Date | null) => Promise<void>;
 }
 
+
 const AddTodoDialog: React.FC<AddTodoDialogProps> = ({ open, onClose, onAdd }) => {
-    const [values, setValues] = useState<{ todo: string }>({ todo: '' });
+    const [values, setValues] = useState<{ title: string, description: string }>({ title: '', description:'' });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [newDeadline, setNewDeadline] = useState<Date | null>(null);
 
     const validateField = (name: string, value: string) => {
-        if (name === 'todo') {
+        if (name === 'title') {
             if (!value.trim()) return 'Todo is required';
             if (value.length > 100) return 'Todo must be less than 100 characters';
         }
@@ -51,9 +52,9 @@ const AddTodoDialog: React.FC<AddTodoDialogProps> = ({ open, onClose, onAdd }) =
             setErrors(validationErrors);
             return;
         }
-        if (!values.todo.trim()) return;
-        await onAdd(values.todo, newDeadline);
-        setValues({ todo: '' });
+        if (!values.title.trim()) return;
+        await onAdd(values.title, values.description, newDeadline);
+        setValues({ title: '', description: '' });
         setNewDeadline(null);
         setErrors({});
         onClose();
@@ -65,17 +66,30 @@ const AddTodoDialog: React.FC<AddTodoDialogProps> = ({ open, onClose, onAdd }) =
     <Box component="form" onSubmit={handleSubmit}>
         <DialogContent>
             <TextField
-                autoFocus
-    margin="dense"
-    label="Todo"
-    name="todo"
-    fullWidth
-    value={values.todo}
-    onChange={handleChange}
-    onBlur={handleBlur}
-    error={!!errors.todo}
-    helperText={errors.todo}
-    />
+            autoFocus
+            margin="dense"
+            label="Title"
+            name="title"
+            fullWidth
+            value={values.title}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={!!errors.todo}
+            helperText={errors.todo}
+            />
+            <TextField
+                margin="dense"
+                label="Description"
+                name="description"
+                        fullWidth
+                        multiline
+                        rows={8}
+                value={values.description}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={!!errors.description}
+                helperText={errors.description}
+            />
     <DeadlinePicker
     value={newDeadline ? dayjs(newDeadline) : null}
     onChange={date => setNewDeadline(date ? date.toDate() : null)}
