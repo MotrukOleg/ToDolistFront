@@ -103,6 +103,7 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                     onBlur={() => setErrors(validateFields(editText, editDescriptionText))}
                     error={!!errors.title}
                     helperText={errors.title}
+                    sx={{ mb: 1 }}
                 />
                 <TextField
                     margin="dense"
@@ -115,6 +116,7 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                     onBlur={() => setErrors(validateFields(editText, editDescriptionText))}
                     error={!!errors.description}
                     helperText={errors.description}
+                    sx={{ mb: 2 }}
                 />
 
                 <DeadlinePicker
@@ -126,9 +128,52 @@ const EditTodoDialog: React.FC<EditTodoDialogProps> = ({
                 )}
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button color="error" onClick={handleDelete}>Delete</Button>
-                <Button variant="contained" onClick={handleSave}>Save</Button>
+                <Button
+                    onClick={onClose} 
+                    variant="contained"
+                    sx={{
+                        backgroundColor: '#1976d2',
+                        color: '#fff',
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        px: 3,
+                        py: 1,
+                        boxShadow: 2,
+                        '&:hover': { backgroundColor: '#1565c0' }
+                    }}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    color="error"
+                    onClick={handleDelete}
+                    sx={{
+                    backgroundColor: 'red',
+                    color: '#fff',
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    boxShadow: 2,
+                    '&:hover': { backgroundColor: '#1565c0' }
+                    }}
+                >
+                    Delete</Button>
+                <Button
+                    variant="contained"
+                    onClick={handleSave} sx={{
+                    backgroundColor: '#1976d2',
+                    color: '#fff',
+                    borderRadius: 2,
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    boxShadow: 2,
+                    '&:hover': { backgroundColor: '#1565c0' }
+                    }}
+                >
+                    Save    
+                </Button>
             </DialogActions>
         </Dialog>
     );

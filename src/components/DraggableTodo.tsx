@@ -46,18 +46,23 @@ const DraggableTodo: React.FC<DraggableTodoProps> = React.memo(({ todo, idx, onC
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         sx={{
-                            mb: 1,
-                            opacity: snapshot.isDragging ? 0.7 : 1,
+                            mb: 1.5,
+                            opacity: snapshot.isDragging ? 0.85 : 1,
                             backgroundColor: color || style.backgroundColor || 'white',
                             borderLeft: style.borderLeft || 'none',
+                            borderRadius: 3,
+                            boxShadow: snapshot.isDragging ? 8 : 2,
                             transition: 'box-shadow 0.2s, transform 0.2s',
-                            boxShadow: snapshot.isDragging ? 3 : 0,
                             minHeight: 40,
-                            borderRadius: 1,
-                            p: 1,
+                            p: 2,
+                            '&:hover': {
+                                boxShadow: 10,
+                                backgroundColor: '#f5f5f5',
+                            },
+                            cursor: 'pointer',
                         }}
                     >
-                        <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
+                        <CardContent sx={{ p: 0 }}>
                             <Box mb={0.5}>
                                 <Typography
                                     variant="subtitle2"

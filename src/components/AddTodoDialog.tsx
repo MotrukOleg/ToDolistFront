@@ -62,33 +62,35 @@ const AddTodoDialog: React.FC<AddTodoDialogProps> = ({ open, onClose, onAdd }) =
 
     return (
         <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Add new todo</DialogTitle>
+            <DialogTitle sx={{ fontWeight: 700 }}>Add new todo</DialogTitle>
     <Box component="form" onSubmit={handleSubmit}>
         <DialogContent>
             <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            name="title"
-            fullWidth
-            value={values.title}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={!!errors.todo}
-            helperText={errors.todo}
+                        autoFocus
+                        margin="dense"
+                        label="Title"
+                        name="title"
+                        fullWidth
+                        value={values.title}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={!!errors.todo}
+                        helperText={errors.todo}
+                        sx={{ mb: 1 } }
             />
             <TextField
-                margin="dense"
-                label="Description"
-                name="description"
+                        margin="dense"
+                        label="Description"
+                        name="description"
                         fullWidth
                         multiline
                         rows={8}
-                value={values.description}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                error={!!errors.description}
-                helperText={errors.description}
+                        value={values.description}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={!!errors.description}
+                        helperText={errors.description}
+                        sx={{ mb: 2 } }
             />
     <DeadlinePicker
     value={newDeadline ? dayjs(newDeadline) : null}
@@ -96,11 +98,37 @@ const AddTodoDialog: React.FC<AddTodoDialogProps> = ({ open, onClose, onAdd }) =
     />
     </DialogContent>
     <DialogActions>
-    <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="contained">Add</Button>
-        </DialogActions>
-        </Box>
-        </Dialog>
+        <Button
+            variant="contained"
+            sx={{
+                backgroundColor: '#1976d2',
+                color: '#fff',
+                borderRadius: 2,
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                boxShadow: 2,
+                '&:hover': { backgroundColor: '#1565c0' }
+            }} onClick={onClose}>Cancel</Button>
+        <Button
+            type="submit"
+            variant="contained"
+            sx={{
+                backgroundColor: '#1976d2',
+                color: '#fff',
+                borderRadius: 2,
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                boxShadow: 2,
+                '&:hover': { backgroundColor: '#1565c0' }
+            }}
+        >
+            Add
+        </Button>
+     </DialogActions>
+    </Box>
+</Dialog>
 );
 };
 
