@@ -15,23 +15,26 @@ interface DeadlinePickerProps {
 const DeadlinePicker: React.FC<DeadlinePickerProps> = ({ label = 'Deadline', value, onChange }) => (
     <Stack direction="row" spacing={2} alignItems="center">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DesktopDatePicker
-            label={label}
-            value={value}
-            onChange={onChange}
-            minDate={dayjs()}
-            slotProps={{
-                field: {
-                    clearable: true,
-                },
-                textField: {
-                    fullWidth: true,
-                    margin: 'dense',
-                    variant: 'outlined',
-                    helperText: 'MM/DD/YYYY',
-                },
-            }}
-        />
+            <DesktopDatePicker
+                label={label}
+                value={value}
+                onChange={onChange}
+                minDate={dayjs()}
+                slotProps={{
+                    field: {
+                        clearable: true,
+                    },
+                    textField: {
+                        fullWidth: true,
+                        margin: 'dense',
+                        variant: 'outlined',
+                        helperText: 'MM/DD/YYYY',
+                        inputProps: {
+                            'data-testid': 'deadline-input',
+                        },
+                    },
+                }}
+            />
         </LocalizationProvider>
     </Stack>
 );

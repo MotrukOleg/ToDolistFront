@@ -1,7 +1,8 @@
 ﻿import {useDispatch} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 import {logout} from '../features/authSlice';
-import {Button} from '@mui/material';
+import { Button } from '@mui/material';
+import React from 'react';
 
 const LogoutButton = () => {
     const dispatch = useDispatch();

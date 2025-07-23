@@ -6,7 +6,6 @@ const API_UPDATE_URL = process.env.REACT_APP_API_RECORD_UPDATE_URL as string;
 const API_DELETE_URL = process.env.REACT_APP_API_RECORD_DELETE_URL as string;
 
 export const fetchTodos = async (token: string | null) => {
-    console.log(API_GET_URL);
     const response = await axios.get(API_GET_URL, {
         headers: { Authorization: `Bearer ${token}` }
     });
