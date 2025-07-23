@@ -22,7 +22,7 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-    const [values, setValues] = useState({FirstName: '',LastName: '', email: '', password: '' , repeatPassword: '' });
+    const [values, setValues] = useState({firstName: '',lastName: '', email: '', password: '' , repeatPassword: '' });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
@@ -38,7 +38,7 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
 
     const validateField = (Validation: string, value: string) => {
         switch (Validation) {
-            case 'FirstName':
+            case 'firstName':
                 if (!value.trim()) return 'Name is required';
                 break;
             case 'email':
@@ -47,7 +47,7 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
                 break;
             case 'password':
                 if (!value) return 'Password is required';
-                if (value.length < 6) return 'Password must be at least 6 characters';
+                if (value.length < 8) return 'Password must be at least 8 characters';
                 break;
             case 'repeatPassword':
                 if(!value) return 'Password is required';
@@ -94,14 +94,14 @@ const Register: React.FC<RegisterProps> = ({ onRegistrationSuccess }) => {
             <Stack spacing={2}>
                 <TextField
                     label="Name"
-                    name="FirstName"
+                    name="firstName"
                     fullWidth
                     required
-                    value={values.FirstName}
+                    value={values.firstName}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={!!errors.name}
-                    helperText={errors.name}
+                    error={!!errors.firstName}
+                    helperText={errors.firstName}
                 />
                 <TextField
                     label="Email"

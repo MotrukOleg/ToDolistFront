@@ -3,7 +3,7 @@ import {login, register} from '../services/authService';
 
 export const registerUser = createAsyncThunk(
     'auth/registerUser',
-    async (values: { FirstName: string; LastName:string , email: string; password: string }, {rejectWithValue}) => {
+    async (values: { firstName: string; lastName:string , email: string; password: string }, {rejectWithValue}) => {
         try {
             const data = await register(values);
             return data;

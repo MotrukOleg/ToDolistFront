@@ -6,7 +6,7 @@ export interface LoginData {
 }
 
 export interface RegisterData {
-    FirstName: string;
+    firstName: string;
     email: string;
     password: string;
 }

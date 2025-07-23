@@ -65,106 +65,309 @@ describe('EditTodoDialog', () => {
 });
 
 
-test('renders login form', () => {
-    render(
-        <Provider store={store}>
-            <MemoryRouter>
-                <Login />
-            </MemoryRouter>
-        </Provider>
-    );
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getAllByLabelText(/password/i).length).toBeGreaterThanOrEqual(1);
+describe('Login and Register', () => {
+
+    it('renders login form', () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Login />
+                </MemoryRouter>
+            </Provider>
+        );
+        expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+        expect(screen.getAllByLabelText(/password/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('renders register form', () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        expect(screen.getByLabelText(/Name/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+        expect(screen.getAllByLabelText(/password/i).length).toBeGreaterThanOrEqual(2);
+    });
 });
 
-test('renders register form', () => {
-    render(
-        <Provider store={store}>
-            <MemoryRouter>
-                <Register />
-            </MemoryRouter>
-        </Provider>
-    );
-    expect(screen.getByLabelText(/Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getAllByLabelText(/password/i).length).toBeGreaterThanOrEqual(2);
-});
-
-test('can add a todo with title and description', async () => {
-    const handleAdd = jest.fn();
-    render(
-        <AddTodoDialog open={true} onClose={() => { }} onAdd={handleAdd} />
-    );
-    fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Test Todo' } });
-    fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Test Description' } });
-    fireEvent.change(screen.getByTestId('deadline-input'), { target: { value: '2025-07-22' } });
-    fireEvent.click(screen.getByRole('button', { name: /add/i }));
-    await waitFor(() =>
-        expect(handleAdd).toHaveBeenCalledWith('Test Todo', 'Test Description', null)
-    );
+describe('AddTodoDialog', () => {
+    it('can add a todo with title and description', async () => {
+        const handleAdd = jest.fn();
+        render(
+            <AddTodoDialog open={true} onClose={() => { }} onAdd={handleAdd} />
+        );
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Test Todo' } });
+        fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Test Description' } });
+        fireEvent.change(screen.getByTestId('deadline-input'), { target: { value: '2025-07-22' } });
+        fireEvent.click(screen.getByRole('button', { name: /add/i }));
+        await waitFor(() =>
+            expect(handleAdd).toHaveBeenCalledWith('Test Todo', 'Test Description', null)
+        );
+    });
 });
 
 
+describe('DraggableTodo', () => {
+    it('shows and hides long description', () => {
+        const todo = {
+            recordId: BigInt(2),
+            title: 'Title',
+            description: 'This is a long description that should be truncated and toggled.',
+            status: 'todo' as 'todo',
+            deadline: null,
+        };
 
-test('shows and hides long description', () => {
+        render(
+            <DragDropContext onDragEnd={() => { }}>
+                <Droppable droppableId="test-droppable">
+                    {(provided) => (
+                        <div ref={provided.innerRef} {...provided.droppableProps}>
+                            <DraggableTodo todo={todo} idx={0} />
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>
+        );
+
+        expect(screen.getByText(/This is a long desc.../i)).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText(/show more/i));
+        expect(screen.getByText(todo.description)).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText(/show less/i));
+        expect(screen.getByText(/This is a long desc.../i)).toBeInTheDocument();
+    });
+
+
+    it('renders todo board columns', () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <ToDoList />
+                </MemoryRouter>
+            </Provider>
+        );
+        expect(screen.getByText(/To Do/i)).toBeInTheDocument();
+        expect(screen.getByText(/In Progress/i)).toBeInTheDocument();
+        expect(screen.getByText(/Done/i)).toBeInTheDocument();
+    });
+
+    it('can click all "+ Add Record" buttons and open the add dialog', () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <ToDoList />
+                </MemoryRouter>
+            </Provider>
+        );
+
+        const addButtons = screen.getAllByRole('button', { name: /\+ Add Record/i });
+        expect(addButtons.length).toBeGreaterThanOrEqual(3);
+
+        addButtons.forEach((button) => {
+            fireEvent.click(button);
+            expect(screen.getByText(/Add new todo/i)).toBeInTheDocument();
+            fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+        });
+    });
+});
+
+
+describe('AddTodoDialog and EditTodoDialog field validaion', () => {
     const todo = {
-        recordId: BigInt(2),
-        title: 'Title',
-        description: 'This is a long description that should be truncated and toggled.',
+        recordId: BigInt(1),
+        title: '',
+        description: 'Old Description',
         status: 'todo' as 'todo',
         deadline: null,
     };
 
-    render(
-        <DragDropContext onDragEnd={() => { }}>
-            <Droppable droppableId="test-droppable">
-                {(provided) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                        <DraggableTodo todo={todo} idx={0} />
-                        {provided.placeholder}
-                    </div>
-                )}
-            </Droppable>
-        </DragDropContext>
-    );
+    const withLongTitle = {
+        recordId: BigInt(2),
+        title: 'a'.repeat(51),
+        description: 'Old Description',
+        status: 'todo' as 'todo',
+        deadline: null,
+    };
 
-    expect(screen.getByText(/This is a long desc.../i)).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText(/show more/i));
-    expect(screen.getByText(todo.description)).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText(/show less/i));
-    expect(screen.getByText(/This is a long desc.../i)).toBeInTheDocument();
+    const withLongDescription = {
+        recordId: BigInt(3),
+        title: 'Valid Title',
+        description: 'a'.repeat(501),
+        status: 'todo' as 'todo',
+        deadline: null,
+    };
+
+    it('shows error if title is empty', async () => {
+        render(<EditTodoDialog open={true} selectedTodo={todo} onClose={jest.fn()} onUpdate={jest.fn()} onDelete={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: '' } });
+        fireEvent.blur(screen.getByLabelText(/title/i));
+        expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
+    });
+
+    it('shows error if title is too long', async () => {
+        render(<EditTodoDialog open={true} selectedTodo={withLongTitle} onClose={jest.fn()} onUpdate={jest.fn()} onDelete={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'a'.repeat(51) } });
+        fireEvent.blur(screen.getByLabelText(/title/i));
+        expect(await screen.findByText(/title must be less than 50 characters/i)).toBeInTheDocument();
+    });
+
+    it('shows error if description is too long', async () => {
+        render(<EditTodoDialog open={true} selectedTodo={withLongDescription} onClose={jest.fn()} onUpdate={jest.fn()} onDelete={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'a'.repeat(501) } });
+        fireEvent.blur(screen.getByLabelText(/description/i));
+        expect(await screen.findByText(/description must be less than 500 characters/i)).toBeInTheDocument();
+    });
+
+    it('does not call onUpdate if validation fails', async () => {
+        const onUpdate = jest.fn();
+        render(<EditTodoDialog open={true} selectedTodo={todo} onClose={jest.fn()} onUpdate={onUpdate} onDelete={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: '' } });
+        fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        await waitFor(() => {
+            expect(onUpdate).not.toHaveBeenCalled();
+        });
+    });
+
+    it('removes error when title is fixed', async () => {
+        render(<EditTodoDialog open={true} selectedTodo={todo} onClose={jest.fn()} onUpdate={jest.fn()} onDelete={jest.fn()} />);
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: '' } });
+        fireEvent.blur(screen.getByLabelText(/title/i));
+        expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
+
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Valid Title' } });
+        fireEvent.blur(screen.getByLabelText(/title/i));
+        await waitFor(() => {
+            expect(screen.queryByText(/title is required/i)).not.toBeInTheDocument();
+        });
+    });
 });
 
+describe('Login and Register form validation', () => {
 
-test('renders todo board columns', () => {
-    render(
-        <Provider store={store}>
-            <MemoryRouter>
-                <ToDoList />
-            </MemoryRouter>
-        </Provider>
-    );
-    expect(screen.getByText(/To Do/i)).toBeInTheDocument();
-    expect(screen.getByText(/In Progress/i)).toBeInTheDocument();
-    expect(screen.getByText(/Done/i)).toBeInTheDocument();
-});
 
-test('can click all "+ Add Record" buttons and open the add dialog', () => {
-    render(
-        <Provider store={store}>
-            <MemoryRouter>
-                <ToDoList />
-            </MemoryRouter>
-        </Provider>
-    );
+    it('should show error for empty email in login', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Login />
+                </MemoryRouter>
+            </Provider>
+        );
+        fireEvent.change(screen.getByLabelText(/email/i), { target: { value: '' } });
+        fireEvent.blur(screen.getByLabelText(/email/i));
+        expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
+    });
 
-    const addButtons = screen.getAllByRole('button', { name: /\+ Add Record/i });
-    expect(addButtons.length).toBeGreaterThanOrEqual(3);
+    it('should show error for invalid email in login', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Login />
+                </MemoryRouter>
+            </Provider>
+        );
+        fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'invalid-email' } });
+        fireEvent.blur(screen.getByLabelText(/email/i));
+        expect(await screen.findByText(/email is invalid/i)).toBeInTheDocument();
+    });
 
-    addButtons.forEach((button) => {
-        fireEvent.click(button);
-        expect(screen.getByText(/Add new todo/i)).toBeInTheDocument();
-        fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    it('should show error for empty password in login', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Login />
+                </MemoryRouter>
+            </Provider>
+        );
+        const passwordFields = screen.getAllByLabelText(/password/i);
+        fireEvent.change(passwordFields[0], { target: { value: '' } });
+        fireEvent.blur(passwordFields[0]);
+        expect(await screen.findByText(/Password is required/i)).toBeInTheDocument();
+    });
+
+    it('should show error for not enough length of password in login', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Login />
+                </MemoryRouter>
+            </Provider>
+        );
+        const passwordFields = screen.getAllByLabelText(/password/i);
+        fireEvent.change(passwordFields[0], { target: { value: "a".repeat(7) } });
+        fireEvent.blur(passwordFields[0]);
+        expect(await screen.findByText(/Password must be at least 8 characters/i)).toBeInTheDocument();
+    });
+
+    it('should show error for empty name in register', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: '' } });
+        fireEvent.blur(screen.getByLabelText(/Name/i));
+        expect(await screen.findByText(/name is required/i)).toBeInTheDocument();
+    });
+
+    it('should show error for empty email in register', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        fireEvent.change(screen.getByLabelText(/email/i), { target: { value: '' } });
+        fireEvent.blur(screen.getByLabelText(/email/i));
+        expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
+    });
+
+    it('should show error for invalid email in register', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'invalid-email' } });
+        fireEvent.blur(screen.getByLabelText(/email/i));
+        expect(await screen.findByText(/email is invalid/i)).toBeInTheDocument();
+    });
+
+    it('should show error for empty password in register', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        const passwordFields = screen.getAllByLabelText(/password/i);
+        fireEvent.change(passwordFields[0], { target: { value: '' } });
+        fireEvent.blur(passwordFields[0]);
+        expect(await screen.findByText(/password is required/i)).toBeInTheDocument();
+    });
+
+    it('should show error for password mismatch in register', async () => {
+        render(
+            <Provider store={store}>
+                <MemoryRouter>
+                    <Register />
+                </MemoryRouter>
+            </Provider>
+        );
+        const passwordFields = screen.getAllByLabelText(/password/i);
+        fireEvent.change(passwordFields[0], { target: { value: 'password123' } });
+        fireEvent.change(screen.getByLabelText(/repeat password/i), { target: { value: 'differentPassword' } });
+        fireEvent.blur(screen.getByLabelText(/repeat password/i));
+        expect(await screen.findByText(/password is not match/i)).toBeInTheDocument();
     });
 });
 
